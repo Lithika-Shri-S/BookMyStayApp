@@ -1,42 +1,92 @@
+/**
+ * BookMyStayApp
+ * Demonstrates read-only room search using centralized inventory.
+ * Displays only available rooms without modifying system state.
+ *
+ * @author YourName
+ * @version 4.0
+ */
+
 import java.util.HashMap;
 import java.util.Map;
 
-// Inventory Class
-class RoomInventory {
+// Abstract Room class
+abstract class Room {
+    private String type;
+    private double price;
 
-    // HashMap to store room type and availability
+    public Room(String type, double price) {
+        this.type = type;
+        this.price = price;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public double getPrice() {
+        return price;
+    }
+
+    public void displayDetails() {
+        System.out.println("Room Type: " + type);
+        System.out.println("Price: ₹" + price);
+    }
+}
+
+// Concrete Room Types
+class SingleRoom extends Room {
+    public SingleRoom() {
+        super("Single Room", 1500);
+    }
+}
+
+class DoubleRoom extends Room {
+    public DoubleRoom() {
+        super("Double Room", 2500);
+    }
+}
+
+class SuiteRoom extends Room {
+    public SuiteRoom() {
+        super("Suite Room", 5000);
+    }
+}
+
+// Inventory Class (State Holder)
+class RoomInventory {
     private Map<String, Integer> inventory;
 
-    // Constructor initializes inventory
     public RoomInventory() {
         inventory = new HashMap<>();
-
-        // Initial room availability
         inventory.put("Single Room", 5);
-        inventory.put("Double Room", 3);
+        inventory.put("Double Room", 0); // unavailable
         inventory.put("Suite Room", 2);
     }
 
-    // Method to get availability of a specific room
+    // Read-only method
     public int getAvailability(String roomType) {
         return inventory.getOrDefault(roomType, 0);
     }
+}
 
-    // Method to update availability
-    public void updateAvailability(String roomType, int count) {
-        if (inventory.containsKey(roomType)) {
-            inventory.put(roomType, count);
-        } else {
-            System.out.println("Room type not found.");
-        }
-    }
+// Search Service (Read-only)
+class RoomSearchService {
 
-    // Method to display full inventory
-    public void displayInventory() {
-        System.out.println("\n--- Current Room Inventory ---\n");
+    public void searchAvailableRooms(RoomInventory inventory, Room[] rooms) {
 
-        for (Map.Entry<String, Integer> entry : inventory.entrySet()) {
-            System.out.println(entry.getKey() + " : " + entry.getValue());
+        System.out.println("\n--- Available Rooms ---\n");
+
+        for (Room room : rooms) {
+
+            int available = inventory.getAvailability(room.getType());
+
+            // Defensive check
+            if (available > 0) {
+                room.displayDetails();
+                System.out.println("Available: " + available);
+                System.out.println();
+            }
         }
     }
 }
@@ -48,20 +98,21 @@ public class BookMyStayApp {
 
         System.out.println("=====================================");
         System.out.println("      Welcome to Book My Stay App");
-        System.out.println("         Version: v3.1");
+        System.out.println("         Version: v4.0");
         System.out.println("=====================================");
 
         // Initialize inventory
         RoomInventory inventory = new RoomInventory();
 
-        // Display current inventory
-        inventory.displayInventory();
+        // Room domain objects
+        Room[] rooms = {
+                new SingleRoom(),
+                new DoubleRoom(),
+                new SuiteRoom()
+        };
 
-        // Example update
-        System.out.println("\nUpdating Single Room availability...\n");
-        inventory.updateAvailability("Single Room", 4);
-
-        // Display updated inventory
-        inventory.displayInventory();
+        // Search (read-only)
+        RoomSearchService searchService = new RoomSearchService();
+        searchService.searchAvailableRooms(inventory, rooms);
     }
 }
